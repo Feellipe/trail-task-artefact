@@ -23,7 +23,7 @@ export default function TaskCard({ task }: { task: Task }) {
         >
           Edit
         </Link>
-        <DeleteTaskButton taskId={task.id} />
+        <DeleteTaskButton taskId={task.id} taskTitulo={task.titulo} />
       </div>
     </div>
   );
