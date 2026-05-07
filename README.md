@@ -1,36 +1,104 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TaskArtefact
+
+A task management system (CRUD) built with Next.js 15, tRPC v11, and Tailwind CSS v4. Features infinite scroll, server-side rendering, streaming, and comprehensive error boundaries. Uses an in-memory store for zero-dependency prototyping.
+
+## Tech Stack
+
+- **Framework:** Next.js 15 (App Router, Server Components, Turbopack)
+- **API Layer:** tRPC v11 with React Query v5
+- **Validation:** Zod
+- **Serialization:** SuperJSON
+- **Styling:** Tailwind CSS v4
+- **Notifications:** sonner (toast messages)
+- **Language:** TypeScript 5
+
+## Features
+
+- Full CRUD operations for tasks (create, read, update, delete)
+- Cursor-based pagination with infinite scroll
+- Server-side rendering (SSR) with query prefetching and hydration
+- Streaming via React Suspense boundaries with skeleton loaders
+- Layered error boundaries (root, layout, and route-specific)
+- Optimistic cache invalidation with React Query
+- Type-safe end-to-end API via tRPC
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18.17 or later
+
+### Installation
+
+```bash
+npm install
+```
+
+### Development
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to view the application.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Production Build
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+npm run start
+```
 
-## Learn More
+### Linting
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run lint
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Project Structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+src/
+  app/                    # Next.js App Router pages and layouts
+    api/trpc/[trpc]/      # tRPC API route handler
+    tasks/                # Task-related pages (new, edit)
+  components/             # React components
+    providers/            # Client-side providers (tRPC, React Query, sonner)
+    task/                 # Task-specific components
+    ui/                   # Shared UI components
+  server/                 # Server-only code
+    trpc/                 # tRPC initialization, context, routers
+    store/                # In-memory task store
+  lib/                    # Shared utilities and client configuration
+  types/                  # TypeScript interfaces and Zod schemas
+  hooks/                  # Custom React hooks
+```
 
-## Deploy on Vercel
+## API Reference
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+All endpoints are exposed through tRPC under the `task` namespace.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Procedure | Type | Input | Output | Description |
+|-----------|------|-------|--------|-------------|
+| `task.create` | Mutation | `{ titulo: string, descricao?: string \| null }` | `Task` | Creates a new task |
+| `task.list` | Query | `{ cursor?: string, limit?: number }` | `{ items: Task[], nextCursor: string \| null }` | Lists tasks with cursor pagination |
+| `task.update` | Mutation | `{ id: string, titulo?: string, descricao?: string \| null }` | `Task` | Updates an existing task |
+| `task.delete` | Mutation | `{ id: string }` | `{ success: boolean }` | Deletes a task by ID |
+| `task.getById` | Query | `{ id: string }` | `Task` | Retrieves a single task by ID |
+
+### Task Interface
+
+```typescript
+interface Task {
+  id: string;            // UUID
+  titulo: string;        // max 200 characters
+  descricao: string | null;  // max 2000 characters, null when absent
+  createdAt: string;     // ISO 8601 datetime
+}
+```
+
+## Important Notes
+
+- **In-memory store:** All data is stored in memory using a JavaScript `Map`. All data is lost when the server restarts. This project is intended as a prototype and demonstration, not for production use.
+- **No authentication:** The application does not include any authentication or authorization mechanisms.
+- **Demo project:** TaskArtefact is a reference implementation showcasing the integration of Next.js 15 App Router with tRPC v11, React Query, and Tailwind CSS v4.

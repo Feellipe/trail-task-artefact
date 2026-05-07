@@ -677,8 +677,8 @@ The exact key structure should be verified during Phase 8 verification. If hydra
 - [x] Navigate to `/`. The skeleton loader appears immediately (streaming SSR).
 - [x] After a brief moment, the first page of tasks renders with full HTML (view page source to verify SSR).
 - [ ] Scroll to the bottom to trigger infinite scroll loading of the next page.
-- [ ] If no tasks exist, "No tasks found" message is displayed.
-- [ ] Navigate to `/tasks/new` via the link on the page.
+- [x] If no tasks exist, "No tasks found" message is displayed.
+- [x] Navigate to `/tasks/new` via the link on the page.
 - [ ] Trigger an error boundary to verify `error.tsx` and `global-error.tsx` render correctly.
 - [ ] Verify hydration: the server-prefetched data is picked up by the client-side `useInfiniteQuery` without a duplicate network request. If mismatch occurs, inspect tRPC key via `console.log` and adjust the `queryKey` in Step 8.2.
 
@@ -727,12 +727,11 @@ The exact key structure should be verified during Phase 8 verification. If hydra
 **Dependencies:** None.
 
 ### Phase 9 Verification
-
-- [ ] Navigate to `/tasks/new`. The creation form renders.
-- [ ] Submit with an empty title. Client-side validation error "Title is required" appears below the input.
-- [ ] Submit with a valid title. Task is created, toast "Task created successfully" appears, and the user is redirected to `/`.
-- [ ] The new task appears in the listing.
-- [ ] Submit button is disabled while the mutation is in progress.
+- [x] Navigate to `/tasks/new`. The creation form renders.
+- [x] Submit with an empty title. Client-side validation error "Title is required" appears below the input.
+- [x] Submit with a valid title. Task is created, toast "Task created successfully" appears, and the user is redirected to `/`.
+- [x] The new task appears in the listing.
+- [x] Submit button is disabled while the mutation is in progress.
 
 ---
 
@@ -778,10 +777,10 @@ The edit page passes initial task data directly as serializable props to `TaskFo
 
 ### Phase 10 Verification
 
-- [ ] Create a task, then click "Edit" on it. The edit page loads with the form pre-filled with the task's data.
-- [ ] Edit the title and submit. Toast "Task updated successfully" appears, and the user is redirected to `/`.
-- [ ] Navigate to `/tasks/non-existent-id/edit`. The error boundary catches the `NOT_FOUND` error and displays a friendly message.
-- [ ] While the edit page is loading, the skeleton appears.
+- [x] Create a task, then click "Edit" on it. The edit page loads with the form pre-filled with the task's data.
+- [x] Edit the title and submit. Toast "Task updated successfully" appears, and the user is redirected to `/`.
+- [x] Navigate to `/tasks/non-existent-id/edit`. The error boundary catches the `NOT_FOUND` error and displays a friendly message.
+- [x] While the edit page is loading, the skeleton appears.
 
 ---
 

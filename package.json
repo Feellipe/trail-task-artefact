@@ -13,11 +13,13 @@
     "@trpc/client": "^11.17.0",
     "@trpc/react-query": "^11.17.0",
     "@trpc/server": "^11.17.0",
+    "clsx": "^2.1.1",
     "next": "15.5.15",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "sonner": "^1.7.4",
     "superjson": "^2.2.6",
+    "tailwind-merge": "^3.5.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {
