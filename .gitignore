@@ -39,3 +39,32 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Applications
+*.app
+*.exe
+*.war
+
+# Large media files
+*.mp4
+*.tiff
+*.avi
+*.flv
+*.mov
+*.wmv
+
+.env
+# Dockerfile
+Dockerfile
+
+# Documentation folder
+.docs/
+
+# Claude configuration files
+.claude/
+
+# Agents folder
+.agents/
+
+# Skills lock file
+skills-lock.json
