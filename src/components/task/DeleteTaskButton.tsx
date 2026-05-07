@@ -7,12 +7,33 @@ import Spinner from "@/components/ui/Spinner";
 export default function DeleteTaskButton({ taskId }: { taskId: string }) {
   const utils = trpc.useUtils();
   const deleteMutation = trpc.task.delete.useMutation({
-    onSuccess: () => {
-      toast.success("Task deleted successfully");
+    onMutate: async () => {
+      await utils.task.list.cancel();
+      const snapshot = utils.task.list.getInfiniteData();
+      utils.task.list.setInfiniteData(
+        { limit: 10 },
+        (data) => {
+          if (!data) return data;
+          return {
+            ...data,
+            pages: data.pages.map((page) => ({
+              ...page,
+              items: page.items.filter((task) => task.id !== taskId),
+            })),
+          };
+        },
+      );
+      return { snapshot };
+    },
+    onError: (_error, _vars, context) => {
+      utils.task.list.setInfiniteData({ limit: 10 }, context?.snapshot);
+      toast.error("Failed to delete task");
+    },
+    onSettled: () => {
       utils.task.list.invalidate();
     },
-    onError: (error) => {
-      toast.error(error.message);
+    onSuccess: () => {
+      toast.success("Task deleted successfully");
     },
   });
 

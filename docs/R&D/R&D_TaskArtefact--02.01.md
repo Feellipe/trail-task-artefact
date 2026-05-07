@@ -300,6 +300,7 @@ sequenceDiagram
 sequenceDiagram
     participant U as User
     participant List as TaskList<br/>(Client Component)
+    participant RQ as React Query Cache
     participant TRPC as tRPC Client
     participant Router as TaskRouter
     participant Store as InMemoryTaskStore<br/>(Map)
@@ -307,6 +308,13 @@ sequenceDiagram
     U->>List: Clicks "Delete" on a task
     List->>List: Displays confirmation dialog
     U->>List: Confirms deletion
+
+    Note over List,RQ: OPTIMISTIC UPDATE (immediate)
+    List->>RQ: Cancel in-flight list queries
+    RQ->>RQ: Snapshot current cache
+    List->>RQ: Remove task from cached pages
+    RQ-->>List: UI updates instantly (card removed)
+
     List->>TRPC: task.delete({ id })
     TRPC->>Router: Procedure input validated
     Router->>Store: Map.get(id) -- O(1) lookup
@@ -315,13 +323,15 @@ sequenceDiagram
         Store-->>Router: undefined
         Router-->>TRPC: TRPCError NOT_FOUND
         TRPC-->>List: Error
-        List-->>U: Toast: error with server message
+        List->>RQ: Restore snapshot (card reappears)
+        List-->>U: Toast: "Failed to delete task"
     end
 
     Router->>Store: Map.delete(id) -- O(1)
     Store-->>Router: true
     Router-->>TRPC: Success
-    TRPC-->>List: React Query: invalidates list cache
+    TRPC-->>List: onSettled: invalidate list cache
+    List->>RQ: Background refetch syncs with server
     List-->>U: Toast: "Task deleted successfully"
 ```
 
@@ -331,11 +341,13 @@ sequenceDiagram
 |-------|-------|-------------|-----------|---------------|
 | 1 | User clicks "Delete" | Client Component | taskId | None |
 | 2 | Confirmation dialog displayed | UI | Dialog/Confirm | User action |
-| 3 | tRPC Client sends mutation | tRPC Client | `{ id: string }` | Response |
-| 4 | Router checks existence via Map.get | TaskRouter | id | Task or undefined |
-| 5 | Store removes task via Map.delete | InMemoryTaskStore | id | boolean |
-| 6 | Cache invalidated automatically | React Query | - | List updated |
-| 7 | Feedback displayed via sonner toast | UI | - | Toast notification |
+| 3 | Optimistic update: snapshot cache, remove task from UI | React Query Cache | Cancel in-flight queries | Updated cache (task removed) |
+| 4 | tRPC Client sends mutation | tRPC Client | `{ id: string }` | Response |
+| 5 | Router checks existence via Map.get | TaskRouter | id | Task or undefined |
+| 6 | Store removes task via Map.delete | InMemoryTaskStore | id | boolean |
+| 7 | On error: cache restored from snapshot (rollback) | React Query Cache | Snapshot | Reverted list |
+| 8 | On settled: background refetch syncs cache with server | React Query | - | Synced list |
+| 9 | Feedback displayed via sonner toast | UI | - | Toast notification |
 
 ---
 
@@ -518,7 +530,7 @@ Storage: Map<string, Task>
 
 - **Streaming SSR with Suspense:** `loading.tsx` files at route segment levels create automatic Suspense boundaries. The skeleton UI streams immediately while server-side data fetching completes, providing progressive page loading.
 
-- **Optimistic Updates (optional):** Delete mutations may use React Query optimistic updates to visually remove the task from the list before server confirmation, improving perceived speed. On failure, the list reverts automatically.
+- **Optimistic Updates:** Delete mutations use React Query optimistic updates to visually remove the task from the list before server confirmation, eliminating the perceived delay between mutation completion and cache invalidation. The implementation snapshots the current `task.list` infinite query cache in `onMutate`, removes the deleted task from all cached pages, and restores the snapshot on `onError` (rollback). `onSettled` triggers a background `invalidate()` to sync the cache with the server. This pattern was adopted after testing revealed that the standard mutation-then-invalidate flow caused a 1-2 second visual lag where the spinner stopped but the card remained visible until the refetch completed.
 
 - **Error Boundary Coverage:** Error boundaries are defined at multiple levels: `error.tsx` per route segment, `global-error.tsx` for root layout errors, and `loading.tsx` for Suspense fallbacks. Task-specific `error.tsx` files cover the tasks route group.
 
@@ -889,7 +901,7 @@ interface TaskFormState {
 | Loading page (SSR streaming) | Skeleton loader via loading.tsx | Suspense fallback for the route segment |
 | Loading next page (scroll) | Spinner below the last task | End of list (replaces sentinel) |
 | Mutation in progress (create/edit) | Disabled button + spinner | Submit button of the form |
-| Mutation in progress (delete) | Overlay spinner on item | Over the task card being deleted |
+| Mutation in progress (delete) | Disabled button + spinner on Delete button | Delete button in TaskCard |
 | Success (create/edit) | Toast: "Task saved successfully" | Top-right corner via sonner |
 | Success (delete) | Toast: "Task deleted successfully" + animated removal | Top-right corner via sonner |
 | Error (operation) | Toast: red with server message | Top-right corner via sonner |
@@ -1042,3 +1054,4 @@ task-artefact/
 | 2026-05-06 | 1.0.0 | Initial architectural document | Claude Code (Implementation Executor) |
 | 2026-05-06 | 2.0.0 | Comprehensive revision incorporating all critical, high, medium, and low severity findings: server-side tRPC caller, tRPC context with store injection, streaming SSR via loading.tsx, global-error.tsx, Next.js 15 async params, ISO timestamp for hydration safety, explicit RSC/Client boundary map, serializable props constraint, Map-based store with O(1) lookups, SuperJSON transformer, merged root router, error formatter, input length constraints, nullable type consistency, page limit for infinite scroll, QueryClient stability via useRef, React Query cache configuration, toast architecture (sonner), React Hook Form upgrade path, cursor validation, XSS prevention constraints, and task-specific error boundaries | Claude Code (Implementation Executor) |
 | 2026-05-06 | 2.0.1 | Removed Metadata/SEO strategy (Metadata API) — unnecessary complexity for a prototype. Cleaned up references in scope, failure points, RSC boundary map, folder structure, and change history | Claude Code (Implementation Executor) |
+| 2026-05-07 | 2.1.0 | Implemented optimistic updates for delete mutations in `DeleteTaskButton.tsx`. During testing, the standard mutation-then-invalidate flow caused a 1-2s visual lag (spinner stopped but card remained until refetch completed). Updated: deletion sequence diagram (Section 3.5), step table (Section 3.6), optimistic updates pattern description (Section 6.2), and loading states table (Section 12.6) | Claude Code (Implementation Executor) |

@@ -58,6 +58,46 @@ export const taskRouter = t.router({
       return { success: true };
     }),
 
+  seed: t.procedure
+    .input(z.object({ count: z.number().min(1).max(500).default(100) }))
+    .output(z.object({ created: z.number() }))
+    .mutation(({ input, ctx }) => {
+      const titles = [
+        "Set up project repository",
+        "Design database schema",
+        "Implement authentication flow",
+        "Write unit tests for API",
+        "Review pull request",
+        "Fix navigation bug",
+        "Add error handling",
+        "Optimize query performance",
+        "Update dependencies",
+        "Create deployment pipeline",
+        "Refactor user service",
+        "Add search functionality",
+        "Implement file upload",
+        "Write API documentation",
+        "Set up monitoring alerts",
+        "Design notification system",
+        "Migrate legacy endpoints",
+        "Add rate limiting",
+        "Improve accessibility",
+        "Set up staging environment",
+      ];
+      const descriptions = [
+        null,
+        "Needs to be completed before the sprint ends.",
+        "Review the requirements document for details.",
+        "Coordinate with the backend team on this.",
+      ];
+      for (let i = 0; i < input.count; i++) {
+        const titulo = `${titles[i % titles.length]} #${i + 1}`;
+        const descricao = descriptions[i % descriptions.length];
+        ctx.store.create(titulo, descricao);
+      }
+      return { created: input.count };
+    }),
+
   getById: t.procedure
     .input(deleteTaskInputSchema)
     .output(taskSchema)
