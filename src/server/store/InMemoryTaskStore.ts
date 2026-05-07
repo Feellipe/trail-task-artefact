@@ -70,4 +70,12 @@ class InMemoryTaskStore {
   }
 }
 
-export const inMemoryTaskStore = new InMemoryTaskStore();
+const globalForStore = globalThis as unknown as {
+  inMemoryTaskStore: InMemoryTaskStore | undefined;
+};
+
+export const inMemoryTaskStore = globalForStore.inMemoryTaskStore ?? new InMemoryTaskStore();
+
+if (process.env.NODE_ENV !== "production") {
+  globalForStore.inMemoryTaskStore = inMemoryTaskStore;
+}
