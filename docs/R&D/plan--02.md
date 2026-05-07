@@ -540,9 +540,9 @@ Optimistic updates are deferred to a future enhancement. The standard mutation -
 
 ### Phase 6 Verification
 
-- [ ] `TaskCard` renders task data correctly.
-- [ ] `TaskCardDate` formats the ISO timestamp in the browser's local timezone.
-- [ ] `DeleteTaskButton` triggers the delete mutation, shows confirmation, and displays toast feedback.
+- [x] `TaskCard` renders task data correctly.
+- [x] `TaskCardDate` formats the ISO timestamp in the browser's local timezone.
+- [x] `DeleteTaskButton` triggers the delete mutation, shows confirmation, and displays toast feedback.
 
 ---
 
@@ -592,9 +592,9 @@ Optimistic updates are deferred to a future enhancement. The standard mutation -
 
 ### Phase 7 Verification
 
-- [ ] `useTaskForm` manages form state, validates inputs, and integrates with tRPC mutations.
-- [ ] `useInfiniteScroll` correctly triggers the callback when a sentinel element enters the viewport.
-- [ ] TypeScript types are correct for both hooks.
+- [x] `useTaskForm` manages form state, validates inputs, and integrates with tRPC mutations.
+- [x] `useInfiniteScroll` correctly triggers the callback when a sentinel element enters the viewport.
+- [x] TypeScript types are correct for both hooks.
 
 ---
 
@@ -674,8 +674,8 @@ The exact key structure should be verified during Phase 8 verification. If hydra
 
 ### Phase 8 Verification
 
-- [ ] Navigate to `/`. The skeleton loader appears immediately (streaming SSR).
-- [ ] After a brief moment, the first page of tasks renders with full HTML (view page source to verify SSR).
+- [x] Navigate to `/`. The skeleton loader appears immediately (streaming SSR).
+- [x] After a brief moment, the first page of tasks renders with full HTML (view page source to verify SSR).
 - [ ] Scroll to the bottom to trigger infinite scroll loading of the next page.
 - [ ] If no tasks exist, "No tasks found" message is displayed.
 - [ ] Navigate to `/tasks/new` via the link on the page.
