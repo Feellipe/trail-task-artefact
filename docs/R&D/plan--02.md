@@ -374,12 +374,12 @@ This factory function creates a per-request tRPC caller. It is used by Server Co
 
 ### Phase 3 Verification
 
-- [ ] `npm run build` compiles successfully.
-- [ ] Manual test: start the dev server, send a `POST` to `http://localhost:3000/api/trpc/task.create` with JSON body `{ "titulo": "Test Task" }` and verify a task is returned with UUID and ISO timestamp.
-- [ ] Send `GET` to `http://localhost:3000/api/trpc/task.list` and verify the task is returned.
-- [ ] Verify `delete` and `update` operations work via curl or a REST client.
-- [ ] Verify `getById` returns the correct task.
-- [ ] Verify `NOT_FOUND` error is returned for non-existent IDs.
+- [x] `npm run build` compiles successfully.
+- [x] Manual test: start the dev server, send a `POST` to `http://localhost:3000/api/trpc/task.create` with JSON body `{ "titulo": "Test Task" }` and verify a task is returned with UUID and ISO timestamp.
+- [x] Send `GET` to `http://localhost:3000/api/trpc/task.list` and verify the task is returned.
+- [x] Verify `delete` and `update` operations work via curl or a REST client.
+- [x] Verify `getById` returns the correct task.
+- [x] Verify `NOT_FOUND` error is returned for non-existent IDs.
 
 ---
 
@@ -438,9 +438,9 @@ export const trpc = createTRPCReact<AppRouter>();
 
 ### Phase 4 Verification
 
-- [ ] `npm run build` succeeds.
-- [ ] `npm run dev` starts and the root layout renders without errors.
-- [ ] No console errors related to React Query or tRPC provider initialization.
+- [x] `npm run build` succeeds.
+- [x] `npm run dev` starts and the root layout renders without errors.
+- [x] No console errors related to React Query or tRPC provider initialization.
 
 ---
 
@@ -482,8 +482,8 @@ export const trpc = createTRPCReact<AppRouter>();
 
 ### Phase 5 Verification
 
-- [ ] All four components render without errors when imported.
-- [ ] Skeletons visually approximate the layout of their corresponding real components.
+- [x] All four components render without errors when imported.
+- [x] Skeletons visually approximate the layout of their corresponding real components.
 
 ---
 
