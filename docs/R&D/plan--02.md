@@ -242,6 +242,7 @@ All custom error messages from Section 5.3 must be included verbatim.
 
 **Goal:** Build the complete tRPC backend: initialization, context, routers, API route handler, and server-side caller.
 
+
 ### Step 3.1 -- Create tRPC initialization (`init.ts`)
 
 **What:** Create `src/server/trpc/init.ts` containing:
