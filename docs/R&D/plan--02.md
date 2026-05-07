@@ -157,9 +157,9 @@ task-artefact/
 
 ### Phase 1 Verification
 
-- [ ] `npm run build` succeeds with no errors on the scaffolded project.
-- [ ] `npm run dev` starts and `http://localhost:3000` renders the default Next.js page.
-- [ ] All packages from Sections 13.1 and 13.2 are present in `package.json`.
+- [x] `npm run build` succeeds with no errors on the scaffolded project.
+- [x] `npm run dev` starts and `http://localhost:3000` renders the default Next.js page.
+- [x] All packages from Sections 13.1 and 13.2 are present in `package.json`.
 
 ---
 
@@ -232,9 +232,9 @@ All custom error messages from Section 5.3 must be included verbatim.
 
 ### Phase 2 Verification
 
-- [ ] TypeScript compiles without errors: `npx tsc --noEmit`.
-- [ ] The `Task` interface and `z.infer<typeof taskSchema>` are structurally identical.
-- [ ] `InMemoryTaskStore` can be imported and basic operations work: create returns a task with UUID and ISO timestamp; list returns paginated results; update and delete work correctly.
+- [x] TypeScript compiles without errors: `npx tsc --noEmit`.
+- [x] The `Task` interface and `z.infer<typeof taskSchema>` are structurally identical.
+- [x] `InMemoryTaskStore` can be imported and basic operations work: create returns a task with UUID and ISO timestamp; list returns paginated results; update and delete work correctly.
 
 ---
 
