@@ -1,3 +1,10 @@
+/**
+ * Error boundary for the /tasks/[id]/edit route. Catches errors like task not
+ * found during the getById server call.
+ *
+ * Error boundary hierarchy: edit/error -> tasks/error -> app/error -> global-error.
+ * Errors bubble up to the nearest boundary.
+ */
 "use client";
 
 export default function Error({

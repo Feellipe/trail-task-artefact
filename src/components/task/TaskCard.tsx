@@ -1,3 +1,10 @@
+/**
+ * TaskCard — Client Component
+ *
+ * Renders a single task as a card. Marked "use client" because it
+ * contains interactive elements (DeleteTaskButton) and could manage
+ * local animation state.
+ */
 "use client";
 
 import Link from "next/link";
@@ -10,6 +17,7 @@ export default function TaskCard({ task }: { task: Task }) {
     <div className="rounded-lg border border-neutral-200 bg-white p-4 shadow-sm">
       <h3 className="text-lg font-semibold text-neutral-900">{task.titulo}</h3>
 
+      {/* Null descriptions render nothing — no fallback text */}
       {task.descricao && (
         <p className="mt-1 text-sm text-neutral-600">{task.descricao}</p>
       )}

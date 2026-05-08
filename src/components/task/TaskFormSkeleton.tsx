@@ -1,3 +1,9 @@
+/**
+ * TaskFormSkeleton — Server Component
+ *
+ * Skeleton placeholder for task form pages during streaming SSR.
+ * Mimics the form layout (heading, input, textarea, button).
+ */
 export default function TaskFormSkeleton() {
   return (
     <div className="animate-pulse space-y-4 rounded-lg border border-neutral-200 bg-neutral-50 p-6">

@@ -1,3 +1,4 @@
+/* Tailwind v4 import syntax — replaces the old @tailwind directives. */
 @import "tailwindcss";
 
 :root {
@@ -5,13 +6,17 @@
   --foreground: #171717;
 }
 
+/* @theme inline registers CSS variables as Tailwind theme values
+   so they can be used as bg-background, text-foreground, etc. */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  /* These are set by the Geist font loaders in layout.tsx. */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
+/* Dark mode via media query — swaps the CSS variable values. */
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
@@ -22,5 +27,6 @@
 body {
   background: var(--background);
   color: var(--foreground);
+  /* Fallback font stack; Geist takes precedence when loaded. */
   font-family: Arial, Helvetica, sans-serif;
 }

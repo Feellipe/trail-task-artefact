@@ -1,3 +1,4 @@
+/** 404 page for unmatched routes. */
 import Link from "next/link";
 
 export default function NotFound() {

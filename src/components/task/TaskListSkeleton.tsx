@@ -1,6 +1,13 @@
+/**
+ * TaskListSkeleton — Server Component
+ *
+ * Skeleton placeholder rendered during streaming SSR. Shows 4
+ * animated pulse cards so the user sees layout before real data arrives.
+ */
 export default function TaskListSkeleton() {
   return (
     <div className="space-y-3">
+      {/* 4 skeleton cards as visual preview */}
       {Array.from({ length: 4 }).map((_, i) => (
         <div
           key={i}

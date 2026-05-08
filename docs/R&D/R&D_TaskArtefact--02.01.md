@@ -44,7 +44,7 @@ graph TB
     subgraph "Client (Browser)"
         UI[React Components<br/>TaskList / TaskForm / TaskCard]
         TRPCClient[tRPC Client<br/>createTRPCReact + React Query]
-        RQProvider[React Query Provider<br/>Stable QueryClient via useRef]
+        RQProvider[React Query Provider<br/>Stable QueryClient via useState initializer]
         Toaster[Toast Notifications<br/>sonner - SSR-safe mount]
     end
 
@@ -84,7 +84,7 @@ graph TB
 |                                                                   |
 |  +-------------------------------------------------------------+  |
 |  |                  React Query Provider                        |  |
-|  |                  (Stable QueryClient via useRef)             |  |
+|  |                  (Stable QueryClient via useState initializer)             |  |
 |  |                                                             |  |
 |  |  +-------------------+  +--------------------------------+  |  |
 |  |  | TaskListPage      |  | TaskFormPage                   |  |  |
@@ -154,7 +154,7 @@ graph TB
 | **Merged Root Router** | Combines all sub-routers, exports AppRouter type | @trpc/server | TaskRouter |
 | **InMemoryTaskStore** | Stores and manages tasks in memory using Map for O(1) lookups | TypeScript (Map&lt;string, Task&gt;) | None (module-scoped singleton) |
 | **Zod Schemas** | Validates procedure input and output | Zod | None |
-| **React Query Provider** | Cache management, loading/error states; stable QueryClient via useRef | @tanstack/react-query | tRPC Client |
+| **React Query Provider** | Cache management, loading/error states; stable QueryClient via useState initializer | @tanstack/react-query | tRPC Client |
 | **TaskListPage** | Lists tasks with SSR (HydrationBoundary + prefetchQuery) + infinite scroll | Server Component + Client Components | Server-Side Caller, tRPC Client |
 | **TaskFormPage** | Create/edit task form | Client Component (useState + useActionState pattern) | tRPC Client, Zod (client-side) |
 | **Toast Provider** | User feedback notifications (success/error) | sonner (recommended) | None (SSR-safe mounting) |
@@ -364,6 +364,7 @@ The system has no external APIs. All communication is internal via tRPC.
 | `task.update` | Mutation | `{ id: string (UUID), titulo?: string (min 1, max 200), descricao?: string (max 2000) }` | `Task` | Updates an existing task |
 | `task.delete` | Mutation | `{ id: string (UUID) }` | `{ success: boolean }` | Removes a task by id |
 | `task.getById` | Query | `{ id: string (UUID) }` | `Task` | Fetches a specific task by id (used for edit form pre-population) |
+| `task.seed` | Mutation | `{ count: number (1-500, default 100) }` | `{ created: number }` | Development-only utility: populates the store with test data for manual testing of infinite scroll and pagination. Not part of the public API contract. |
 
 ### 4.2 tRPC Contract Model
 
@@ -377,6 +378,7 @@ AppRouter (_app.ts)
        +-- update    [Mutation]  -> Task
        +-- delete    [Mutation]  -> { success: boolean }
        +-- getById   [Query]     -> Task
+       +-- seed      [Mutation]  -> { created: number }   (dev-only)
 ```
 
 ### 4.3 tRPC Error Types
@@ -508,7 +510,7 @@ Storage: Map<string, Task>
 | **API Communication** | tRPC v11 (createTRPCReact + createCallerFactory) | REST (Next.js API Routes), GraphQL | tRPC provides end-to-end type-safety without code generation. The contract is shared automatically between frontend and backend. Server Components use `createCallerFactory` for SSR data fetching |
 | **Server-Side Data Fetching** | Server-side tRPC caller (createCallerFactory) | Direct store import, React cache() | The caller pattern respects the tRPC context and middleware chain, providing a consistent API surface for both server and client |
 | **Validation** | Zod | Joi, Yup, class-validator | Zod is the tRPC ecosystem standard. It provides native TypeScript type inference and declarative syntax |
-| **State Management** | TanStack React Query v5 (via @trpc/react-query) | Redux, Zustand, Context API only | React Query provides automatic caching, invalidation, retry, and optimized loading/error states for API consumption. QueryClient is stable via useRef |
+| **State Management** | TanStack React Query v5 (via @trpc/react-query) | Redux, Zustand, Context API only | React Query provides automatic caching, invalidation, retry, and optimized loading/error states for API consumption. QueryClient is stable via useState initializer |
 | **Storage** | In-memory Map&lt;string, Task&gt; (module-scoped singleton) | SQLite, JSON file, IndexedDB | For prototyping, memory is sufficient. Map provides O(1) lookups by ID, avoiding the O(n) cost of array.find. The trade-off is data loss on server restart |
 | **ID Generation** | `crypto.randomUUID()` | nanoid, uuid package, sequential increment | `crypto.randomUUID()` is built into Node.js (v19+) and modern browsers. No external dependency needed |
 | **Pagination** | Cursor-based (ISO timestamp, base64-encoded) | Offset-based (skip/take) | Cursor-based is more performant for growing datasets. It does not suffer from data shifting when items are inserted/deleted between pages. Ideal for infinite scroll |
@@ -526,7 +528,7 @@ Storage: Map<string, Task>
 
 - **tRPC Context (Dependency Injection):** The `createTRPCContext` function creates a per-request context object that injects the singleton `InMemoryTaskStore`. This is the extension point for future additions (auth, session, request-scoped data).
 
-- **Hydration-Resistant State:** The initial React Query state is populated on the server via `prefetchQuery` and `dehydrate`, then hydrated on the client through `HydrationBoundary`. The `QueryClient` is stable (created via `useRef` in the provider) to prevent cache resets on re-renders.
+- **Hydration-Resistant State:** The initial React Query state is populated on the server via `prefetchQuery` and `dehydrate`, then hydrated on the client through `HydrationBoundary`. The `QueryClient` is stable (created via `useState` with an initializer function in the provider) to prevent cache resets on re-renders while maintaining per-request isolation in SSR.
 
 - **Streaming SSR with Suspense:** `loading.tsx` files at route segment levels create automatic Suspense boundaries. The skeleton UI streams immediately while server-side data fetching completes, providing progressive page loading.
 
@@ -553,7 +555,7 @@ Storage: Map<string, Task>
 | **Scroll Infinite** | Race conditions on rapid fetches | Low | React Query disables fetchNextPage while a fetch is in progress (`isFetchingNextPage`). Maximum 50 pages (500 items) prevents DOM bloat |
 | **Form Submission** | Duplicate submission from multiple clicks | Medium | Disable submit button while mutation is pending (`isPending`) |
 | **Root Layout** | Provider initialization failure | High | `global-error.tsx` catches root layout errors (must include own `<html>` and `<body>` tags) |
-| **QueryClient Stability** | Cache reset on re-render causing refetch | Medium | QueryClient created via `useRef` in TRPCProvider, never re-created per render |
+| **QueryClient Stability** | Cache reset on re-render causing refetch | Medium | QueryClient created via `useState` with initializer in TRPCProvider, never re-created per render |
 
 ### 7.2 Error Boundary Coverage Map
 
@@ -624,8 +626,8 @@ app/
 
 ```typescript
 // components/providers/TRPCProvider.tsx
-const queryClient = useRef(
-  new QueryClient({
+const [queryClient] = useState(
+  () => new QueryClient({
     defaultOptions: {
       queries: {
         staleTime: 0,                 // Always refetch on mount (volatile in-memory data)
@@ -637,7 +639,7 @@ const queryClient = useRef(
       },
     },
   })
-).current
+)
 ```
 
 > **SSR hydration note:** The `staleTime: 0` setting means the client will refetch on mount. Since the SSR data is passed via `HydrationBoundary`, the initial render uses server data. The refetch happens in the background and updates silently if data has changed, avoiding a visual flash.
@@ -830,12 +832,12 @@ Every file in the project has an explicitly defined component type. This boundar
 | `app/tasks/[id]/edit/loading.tsx` | Server Component | Suspense fallback for edit page |
 | `app/tasks/[id]/edit/error.tsx` | Client Component | Error boundary for edit route segment |
 | `app/tasks/error.tsx` | Client Component | Error boundary for tasks route group |
-| `components/providers/TRPCProvider.tsx` | Client Component | React Query provider (hooks), stable QueryClient via useRef, sonner Toaster mount |
+| `components/providers/TRPCProvider.tsx` | Client Component | React Query provider (hooks), stable QueryClient via useState initializer, sonner Toaster mount |
 | `components/task/TaskList.tsx` | Client Component | Infinite scroll, useInfiniteQuery, IntersectionObserver |
 | `components/task/TaskForm.tsx` | Client Component | Form state via useState, event handlers, tRPC mutations |
-| `components/task/TaskCard.tsx` | Server Component | Displays task data (title, description, date). No interactive elements |
+| `components/task/TaskCard.tsx` | Client Component | Renders task card with delete animation and mutation logic. Client Component because it renders interactive DeleteTaskButton and manages animation state |
 | `components/task/TaskCardDate.tsx` | Client Component | Formats and displays createdAt in user's local timezone (prevents hydration mismatch) |
-| `components/task/DeleteTaskButton.tsx` | Client Component | Click handler, tRPC mutation, confirmation dialog |
+| `components/task/DeleteTaskButton.tsx` | Client Component | Pure UI component: delete button with confirmation modal. Delegates mutation via onConfirm callback to parent TaskCard |
 | `components/task/TaskListSkeleton.tsx` | Server Component | Skeleton UI for loading.tsx fallback |
 | `components/task/TaskFormSkeleton.tsx` | Server Component | Skeleton UI for form loading.tsx fallback |
 | `components/ui/Spinner.tsx` | Server Component | Reusable loading indicator (no hooks needed) |
@@ -1001,10 +1003,10 @@ task-artefact/
 |   |
 |   +-- components/                   # Reusable React components
 |   |   +-- providers/
-|   |   |   +-- TRPCProvider.tsx      # tRPC + React Query provider (stable QueryClient via useRef)
+|   |   |   +-- TRPCProvider.tsx      # tRPC + React Query provider (stable QueryClient via useState initializer)
 |   |   +-- task/
 |   |   |   +-- TaskList.tsx          # Infinite scroll listing (Client Component)
-|   |   |   +-- TaskCard.tsx          # Individual task card (Server Component)
+|   |   |   +-- TaskCard.tsx          # Individual task card (Client Component - delete animation + mutation)
 |   |   |   +-- TaskCardDate.tsx      # Date display in local timezone (Client Component)
 |   |   |   +-- TaskForm.tsx          # Create/edit form (Client Component)
 |   |   |   +-- TaskListSkeleton.tsx  # Task list skeleton loader
@@ -1055,3 +1057,4 @@ task-artefact/
 | 2026-05-06 | 2.0.0 | Comprehensive revision incorporating all critical, high, medium, and low severity findings: server-side tRPC caller, tRPC context with store injection, streaming SSR via loading.tsx, global-error.tsx, Next.js 15 async params, ISO timestamp for hydration safety, explicit RSC/Client boundary map, serializable props constraint, Map-based store with O(1) lookups, SuperJSON transformer, merged root router, error formatter, input length constraints, nullable type consistency, page limit for infinite scroll, QueryClient stability via useRef, React Query cache configuration, toast architecture (sonner), React Hook Form upgrade path, cursor validation, XSS prevention constraints, and task-specific error boundaries | Claude Code (Implementation Executor) |
 | 2026-05-06 | 2.0.1 | Removed Metadata/SEO strategy (Metadata API) — unnecessary complexity for a prototype. Cleaned up references in scope, failure points, RSC boundary map, folder structure, and change history | Claude Code (Implementation Executor) |
 | 2026-05-07 | 2.1.0 | Implemented optimistic updates for delete mutations in `DeleteTaskButton.tsx`. During testing, the standard mutation-then-invalidate flow caused a 1-2s visual lag (spinner stopped but card remained until refetch completed). Updated: deletion sequence diagram (Section 3.5), step table (Section 3.6), optimistic updates pattern description (Section 6.2), and loading states table (Section 12.6) | Claude Code (Implementation Executor) |
+| 2026-05-08 | 2.2.0 | Corrected R&D-to-implementation divergences: (1) TaskCard boundary map updated from Server Component to Client Component (renders interactive DeleteTaskButton and manages animation state); (2) QueryClient stability pattern corrected from `useRef` to `useState` with initializer (Sections 6.2, 7.1, 8.3, 12.2); (3) `task.seed` procedure added to procedure table and contract model (Sections 4.1, 4.2); (4) DeleteTaskButton description updated to reflect pure UI role with onConfirm callback delegation | Claude Code (Implementation Executor) |

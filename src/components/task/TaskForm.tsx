@@ -1,3 +1,10 @@
+/**
+ * TaskForm — Client Component
+ *
+ * Dual-mode form: creates a new task when no initialTask is provided,
+ * edits an existing one when it is. Delegates all state and mutation
+ * logic to the useTaskForm hook.
+ */
 "use client";
 
 import Link from "next/link";
@@ -6,12 +13,14 @@ import { useTaskForm } from "@/hooks/useTaskForm";
 import Spinner from "@/components/ui/Spinner";
 import type { Task } from "@/types/task";
 
+// initialTask is a JSON-serializable object that crosses the RSC boundary
 export default function TaskForm({ initialTask }: { initialTask?: Task }) {
   const router = useRouter();
 
   const { titulo, descricao, errors, isSubmitting, setTitulo, setDescricao, handleSubmit } =
     useTaskForm({
       initialTask,
+      // Redirect to listing after mutation; listing refetches due to staleTime: 0
       onSuccess: () => router.push("/"),
     });
 
@@ -66,7 +75,7 @@ export default function TaskForm({ initialTask }: { initialTask?: Task }) {
           <div className="flex items-center gap-3">
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting} /* prevents duplicate submissions */
               className="inline-flex items-center gap-2 rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isSubmitting && <Spinner className="h-4 w-4" />}

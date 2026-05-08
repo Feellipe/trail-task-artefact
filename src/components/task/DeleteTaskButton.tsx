@@ -1,3 +1,10 @@
+/**
+ * DeleteTaskButton — Client Component
+ *
+ * Delete button with a confirmation modal. Handles the optimistic
+ * update itself: immediately removes the task from the cached
+ * infinite-query data, rolls back on error, and invalidates on settle.
+ */
 "use client";
 
 import { useState, useEffect } from "react";
@@ -14,6 +21,7 @@ export default function DeleteTaskButton({
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const utils = trpc.useUtils();
+  // Optimistic update: remove task from cache before server responds
   const deleteMutation = trpc.task.delete.useMutation({
     onMutate: async () => {
       await utils.task.list.cancel();
@@ -45,7 +53,7 @@ export default function DeleteTaskButton({
     },
   });
 
-  // Fecha o modal ao pressionar Escape
+  // Close modal on Escape key press
   useEffect(() => {
     if (!isOpen) return;
 
@@ -78,11 +86,11 @@ export default function DeleteTaskButton({
       {isOpen && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-          onClick={() => setIsOpen(false)}
+          onClick={() => setIsOpen(false)} /* backdrop click closes modal */
         >
           <div
             className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()} /* prevent backdrop close on content click */
           >
             <p className="text-sm text-neutral-600">
               You are deleting the task:{" "}

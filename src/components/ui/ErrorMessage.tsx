@@ -1,3 +1,9 @@
+/**
+ * ErrorMessage — Client Component
+ *
+ * Inline error display with an optional retry button.
+ * onRetry typically calls a tRPC refetch() to re-trigger the query.
+ */
 "use client";
 
 export default function ErrorMessage({

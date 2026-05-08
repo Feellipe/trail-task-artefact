@@ -1,3 +1,7 @@
+/**
+ * Merges Tailwind CSS classes.
+ * `clsx` handles conditionals, `twMerge` resolves conflicting utilities.
+ */
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 

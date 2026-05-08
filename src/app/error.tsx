@@ -1,3 +1,8 @@
+/**
+ * Error boundary for the root route segment.
+ * Must be a Client Component (Next.js requirement for error boundaries).
+ * reset() re-renders the route segment by clearing the error state.
+ */
 "use client";
 
 export default function Error({

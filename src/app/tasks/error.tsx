@@ -1,3 +1,10 @@
+/**
+ * Error boundary for the /tasks route group. Catches errors during SSR data
+ * fetching (e.g. task list fetch failures).
+ *
+ * NOTE: Identical to app/error.tsx and edit/error.tsx — separate files are
+ * required because Next.js isolates error boundaries per route segment.
+ */
 "use client";
 
 export default function Error({

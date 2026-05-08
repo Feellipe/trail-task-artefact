@@ -1,3 +1,10 @@
+/**
+ * TaskList — Client Component
+ *
+ * Displays a paginated task listing with infinite scroll via tRPC
+ * useInfiniteQuery. A sentinel div at the bottom triggers the next
+ * page fetch when it enters the viewport (IntersectionObserver).
+ */
 "use client";
 
 import { useRef } from "react";
@@ -9,6 +16,7 @@ import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import Spinner from "@/components/ui/Spinner";
 import ErrorMessage from "@/components/ui/ErrorMessage";
 
+// Caps DOM at 500 items (50 pages x 10 items) to prevent unbounded memory growth
 const MAX_PAGES = 50;
 
 export default function TaskList() {
@@ -34,13 +42,17 @@ export default function TaskList() {
       limit: 10,
     },
     {
+      // Returning undefined signals "no more pages" to useInfiniteQuery
       getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+      // Start from the very first page (no cursor offset)
       initialCursor: undefined,
     },
   );
 
+  // Client-side guard: stop fetching even if server has more data
   const reachedMaxPages = data ? data.pages.length >= MAX_PAGES : false;
 
+  // Gate infinite scroll on both server-side hasNextPage and our local cap
   useInfiniteScroll({
     sentinelRef,
     onIntersect: fetchNextPage,
@@ -54,6 +66,7 @@ export default function TaskList() {
     );
   }
 
+  // Flatten all cached pages into a single renderable array
   const tasks = data?.pages.flatMap((page) => page.items) ?? [];
 
   return (
@@ -61,6 +74,7 @@ export default function TaskList() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-neutral-400">Tasks</h1>
         <div className="flex items-center gap-2">
+          {/* Dev-only: seed button hidden in production builds */}
           {process.env.NODE_ENV === "development" && (
             <button
               onClick={() => seedMutation.mutate({ count: 100 })}
@@ -101,6 +115,7 @@ export default function TaskList() {
         </p>
       )}
 
+      {/* Invisible sentinel — IntersectionObserver watches this element */}
       <div ref={sentinelRef} />
     </div>
   );

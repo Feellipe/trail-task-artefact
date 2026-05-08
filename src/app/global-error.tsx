@@ -1,3 +1,8 @@
+/**
+ * Global error boundary — catches errors in the root layout itself (e.g.
+ * TRPCProvider failure). When this boundary activates the root layout's
+ * <html>/<body> shell is unusable, so this component MUST provide its own.
+ */
 "use client";
 
 export default function GlobalError({

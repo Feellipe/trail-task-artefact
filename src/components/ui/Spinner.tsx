@@ -1,3 +1,10 @@
+/**
+ * Spinner — SVG loading indicator
+ *
+ * Uses Tailwind's animate-spin and inherits text color via
+ * text-current. Works in both Server and Client Components
+ * (no hooks, no state).
+ */
 export default function Spinner({ className = "" }: { className?: string }) {
   return (
     <svg

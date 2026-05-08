@@ -1,3 +1,8 @@
+/**
+ * tRPC procedures for task CRUD.
+ * Input validation is automatic via Zod schemas.
+ * Business logic errors (e.g. NOT_FOUND) are thrown manually.
+ */
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { t } from "../init";
@@ -10,6 +15,7 @@ import {
 } from "@/types/task";
 
 export const taskRouter = t.router({
+  // Zod validates input -> store creates with UUID + ISO timestamp
   create: t.procedure
     .input(createTaskInputSchema)
     .output(taskSchema)
@@ -19,6 +25,7 @@ export const taskRouter = t.router({
 
   list: t.procedure
     .input(listTasksInputSchema)
+    // nextCursor is null when there are no more pages
     .output(z.object({
       items: taskSchema.array(),
       nextCursor: z.string().nullable(),
@@ -31,6 +38,7 @@ export const taskRouter = t.router({
     .input(updateTaskInputSchema)
     .output(taskSchema)
     .mutation(({ input, ctx }) => {
+      // Manual existence check before update — business logic error, not Zod
       const existing = ctx.store.getById(input.id);
       if (!existing) {
         throw new TRPCError({
@@ -38,8 +46,10 @@ export const taskRouter = t.router({
           message: "Task not found. Please verify the identifier and try again.",
         });
       }
+      // Separate id from update payload so store.update() receives only mutable fields
       const { id, ...data } = input;
       const updated = ctx.store.update(id, data);
+      // Safe non-null assertion — existence is guaranteed by the check above
       return updated!;
     }),
 
@@ -47,6 +57,7 @@ export const taskRouter = t.router({
     .input(deleteTaskInputSchema)
     .output(z.object({ success: z.boolean() }))
     .mutation(({ input, ctx }) => {
+      // Same existence-check pattern as update
       const existing = ctx.store.getById(input.id);
       if (!existing) {
         throw new TRPCError({
@@ -58,6 +69,7 @@ export const taskRouter = t.router({
       return { success: true };
     }),
 
+  // Dev-only utility for populating test data — not part of the public API contract
   seed: t.procedure
     .input(z.object({ count: z.number().min(1).max(500).default(100) }))
     .output(z.object({ created: z.number() }))
@@ -98,6 +110,7 @@ export const taskRouter = t.router({
       return { created: input.count };
     }),
 
+  // Reuses deleteTaskInputSchema — both procedures accept the same { id: string } shape
   getById: t.procedure
     .input(deleteTaskInputSchema)
     .output(taskSchema)
